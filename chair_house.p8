@@ -66,11 +66,11 @@ function _draw()
  end
  
  //draw mobs
- for i=0,4 do
+ for i=1,2 do
  	local mob = mobs[i]
  	spr(mob.sprite,
- 		mob.x,
- 		mob.y,
+ 		mobs[i].x,
+ 		mobs[i].y,
  		1,1)
  end
  
@@ -140,22 +140,45 @@ function _update()
 	end
 	
 	//move mobs
-	for c=0,4 do
-		local mob = mobs[i]
-		moves={"up","down","left",
-		"right", "stop", "stop"}
-		local choice = moves[rnd(5)]
+	for c=1,2 do
+		local mob = mobs[c]
+		local choice = flr(rnd(6))
 		
-		if choice=="up" then
-			mobs[i].y-=mob.speed
-		elseif choice=="down" then
-			mobs[i].y+=mob.speed
-		elseif choice=="left" then
-			mobs[i].x+=mob.speed
-		elseif choice=="right" then
-			mobs[i].x-=mob.speed
+		//change x velocity
+		if choice == 0 then
+			//down
+			if mob.vy < 1 then
+				mob.vy += mob.dy
+			end
+		elseif choice == 1 then
+			//up
+			if mob.vy > -1 then
+				mob.vy -= mob.dy
+			end
+		elseif choice == 2 then
+			//right
+			if mob.vx < 1 then
+				mob.vx += mob.dx
+			end
+		elseif choice == 3 then
+			//left
+			if mob.vx > -1 then
+				mob.vx -= mob.dx
+			end
 		end
-	end
+			
+		//move mob and check collision
+		mob.x += mob.vx * mob.speed
+		
+		if cmap2(mob) then
+			mob.x -= mob.vx * mob.speed
+		end
+		mob.y += mob.vy * mob.speed
+		if cmap2(mob) then
+			mob.y -= mob.vy * mob.speed
+		end
+		
+		end
 end
 -->8
 w = 600
@@ -184,24 +207,47 @@ function cmap(o)
 
   return ct or cb
 end
+function cmap2(o)
+  local ct=false
+  local cb=false
+
+  -- if colliding with map tiles
+  if(o.cm) then
+    local x1=o.x/8
+    local y1=o.y/8
+    local x2=(o.x+7)/8
+    local y2=(o.y+7)/8
+    local a=fget(mget(x1,y1),0)
+    local b=fget(mget(x1,y2),0)
+    local c=fget(mget(x2,y2),0)
+    local d=fget(mget(x2,y1),0)
+    ct=a or b or c or d
+   end
+   -- if colliding world bounds
+   if(o.cw) then
+     cb=(o.x<8 or o.x+8>w or
+           o.y<8 or o.y+8>h)
+   end
+
+  return ct or cb
+end
 -->8
 mobs = {}
-spawn = {50*8,20*8,
-	25*8,25*8,
-	60*8,02*8,
-	5*8,25*8}
-for i=0,4 do
+spawn = {50,50, 75, 75}
+for i=1,2 do
 	local mob = {}
-	mob.health = 100
 	mob.sprite = 42
-	mob.direction = "straight"
-	mob.moving = false
-	mob.speed = 2
-	mob.damage = 25
+	mob.speed = 1
+	mob.dx = 0.25
+	mob.dy = 0.25
+	mob.vx = 0
+	mob.vy = 0
 	mob.x = spawn[i]
 	mob.y = spawn[i+1]
 	mobs[i] = mob
-end
+	mob.cm = true //collide map
+ mob.cw = true //collide world
+	end
 
 
 __gfx__
@@ -307,7 +353,7 @@ c111111111111100000000b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3
 4646464646464646464646b4b4b4b400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 46464646464646464646464646464646464646464646464646464646464646464646464646464646464646464646464646464600000000000000000000000000
 __gff__
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000303000000000000000000000000000003030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a646464646464646464646a6a6a6a6a6a6a6a6a64646464646464646464646464646464646464646464646464646464646464646464646464646400000000000000000000000000000000000000000000000000
